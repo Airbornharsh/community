@@ -144,6 +144,62 @@ export const getMembersCommunityController: RequestHandler = async (
   res
 ) => {
   try {
+    const { id } = req.params
+    const community = await db.community.findFirst({
+      where: {
+        id
+      },
+      include: {
+        members: {
+          include: {
+            userRef: {
+              select: {
+                id: true,
+                name: true
+              }
+            },
+            roleRef: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
+      }
+    })
+    if (!community) {
+      return res.status(400).json({
+        status: false,
+        errors: [
+          {
+            message: 'Community not found',
+            code: 'RESOURCE_NOT_FOUND'
+          }
+        ]
+      })
+    }
+    const members = community.members.map((member) => {
+      return {
+        id: member.id,
+        community: id,
+        user: {
+          id: member.userRef.id,
+          name: member.userRef.name
+        },
+        role: {
+          id: member.roleRef.id,
+          name: member.roleRef.name
+        },
+        created_at: member.created_at
+      }
+    })
+    return res.status(200).json({
+      status: true,
+      content: {
+        data: members
+      }
+    })
   } catch (e) {
     return res.status(500).json(catchErrorResponse)
   }
