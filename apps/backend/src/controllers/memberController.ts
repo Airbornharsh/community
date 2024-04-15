@@ -122,7 +122,6 @@ export const createMemberController: RequestHandler = async (req, res) => {
       }
     })
   } catch (error) {
-    console.log(error)
     return res.status(500).json(catchErrorResponse)
   }
 }
@@ -191,7 +190,6 @@ export const removeMemberController: RequestHandler = async (req, res) => {
       status: true
     })
   } catch (error) {
-    console.log(error)
     return res.status(500).json(catchErrorResponse)
   }
 }

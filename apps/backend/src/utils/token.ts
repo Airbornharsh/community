@@ -16,7 +16,6 @@ export const decode = (token: string) => {
     const data = jwt.verify(token, JWT_SECRET)
     return data
   } catch (e) {
-    console.log(e)
     return null
   }
 }
