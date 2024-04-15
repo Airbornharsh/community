@@ -39,7 +39,7 @@ const user = (router: Router) => {
   router.use('/auth', r)
 
   r.post('/signup', signupController)
-  r.post('/signin', signinController)
+  r.post('/signin', verifyToken, signinController)
   r.get('/me', verifyToken, getUserData)
 }
 

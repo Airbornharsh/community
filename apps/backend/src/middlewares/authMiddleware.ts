@@ -11,14 +11,16 @@ export interface UserToken {
 }
 
 export const verifyToken: RequestHandler = async (req, res, next) => {
-  // const token = req.cookies['access_token']
-  // console.log(token)
-  const token = req.headers.authorization?.split(' ')[1]
+  const { access_token } = req.cookies
+  if (!access_token) {
+    res.locals.user = null
+    return next()
+  }
   try {
-    if (!token) {
+    if (!access_token) {
       res.locals.user = null
     } else {
-      const tempUser = decode(token) as UserToken
+      const tempUser = decode(access_token) as UserToken
       const user = await db.user.findFirst({
         where: {
           id: tempUser?.id
@@ -27,6 +29,7 @@ export const verifyToken: RequestHandler = async (req, res, next) => {
       res.locals.user = user
     }
   } catch (e) {
+    console.log(e)
     res.locals.user = null
   }
   next()
