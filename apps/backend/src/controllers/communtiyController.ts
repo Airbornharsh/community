@@ -145,6 +145,9 @@ export const getMembersCommunityController: RequestHandler = async (
 ) => {
   try {
     const { id } = req.params
+    const limit = 50
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+
     const community = await db.community.findFirst({
       where: {
         id
@@ -168,6 +171,7 @@ export const getMembersCommunityController: RequestHandler = async (
         }
       }
     })
+
     if (!community) {
       return res.status(400).json({
         status: false,
@@ -179,8 +183,16 @@ export const getMembersCommunityController: RequestHandler = async (
         ]
       })
     }
-    const members = community.members.map((member) => {
-      return {
+
+    const totalCount = community.members.length
+    const totalPages = Math.ceil(totalCount / limit)
+
+    const startIndex = (page - 1) * limit
+    const endIndex = Math.min(startIndex + limit, totalCount)
+
+    const members = community.members
+      .slice(startIndex, endIndex)
+      .map((member) => ({
         id: member.id,
         community: id,
         user: {
@@ -192,11 +204,16 @@ export const getMembersCommunityController: RequestHandler = async (
           name: member.roleRef.name
         },
         created_at: member.created_at
-      }
-    })
+      }))
+
     return res.status(200).json({
       status: true,
       content: {
+        meta: {
+          total: totalCount,
+          pages: totalPages,
+          page
+        },
         data: members
       }
     })
