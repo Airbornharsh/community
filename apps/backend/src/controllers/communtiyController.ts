@@ -3,7 +3,7 @@ import { NoUserResponse, catchErrorResponse } from '../constants/response'
 import { UserToken } from '../middlewares/authMiddleware'
 import { communityNameValidation } from '../validator'
 import db from '@repo/db/clients'
-import { v4 } from 'uuid'
+import { Snowflake } from '@theinternetfolks/snowflake'
 
 export const createCommunityController: RequestHandler = async (req, res) => {
   try {
@@ -45,7 +45,7 @@ export const createCommunityController: RequestHandler = async (req, res) => {
     const date = new Date()
     const community = await db.community.create({
       data: {
-        id: v4(),
+        id: Snowflake.generate(),
         name,
         slug: name.toLowerCase().replace(' ', '-'),
         updated_at: date,
@@ -55,7 +55,7 @@ export const createCommunityController: RequestHandler = async (req, res) => {
     })
     const role = await db.role.create({
       data: {
-        id: v4(),
+        id: Snowflake.generate(),
         name: 'Community Admin',
         created_at: date,
         updated_at: date
@@ -63,7 +63,7 @@ export const createCommunityController: RequestHandler = async (req, res) => {
     })
     const member = await db.member.create({
       data: {
-        id: v4(),
+        id: Snowflake.generate(),
         user: user.id,
         community: community.id,
         role: role.id,

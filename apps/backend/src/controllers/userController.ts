@@ -1,11 +1,11 @@
 import { RequestHandler } from 'express'
 import { signinValidation, userValidation } from '../validator'
-import { v4 } from 'uuid'
 import db from '@repo/db/clients'
 import { encode } from '../utils/token'
 import bcrypt from 'bcrypt'
 import { UserToken } from '../middlewares/authMiddleware'
 import { NoUserResponse, catchErrorResponse } from '../constants/response'
+import { Snowflake } from '@theinternetfolks/snowflake'
 
 export const signupController: RequestHandler = async (req, res) => {
   const { name, email, password } = req.body
@@ -43,7 +43,7 @@ export const signupController: RequestHandler = async (req, res) => {
     const hashPassword = bcrypt.hashSync(password, 10)
     const user = await db.user.create({
       data: {
-        id: v4(),
+        id: Snowflake.generate(),
         name,
         email,
         password: hashPassword,
@@ -79,6 +79,7 @@ export const signupController: RequestHandler = async (req, res) => {
       }
     })
   } catch (e) {
+    console.log(e)
     return res.status(500).json(catchErrorResponse)
   }
 }

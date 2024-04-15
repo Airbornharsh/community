@@ -1,9 +1,8 @@
 import { RequestHandler } from 'express'
-import { NoUserResponse, catchErrorResponse } from '../constants/response'
-import { UserToken } from '../middlewares/authMiddleware'
+import { catchErrorResponse } from '../constants/response'
 import { roleNameValidation } from '../validator'
 import db from '@repo/db/clients'
-import { v4 } from 'uuid'
+import { Snowflake } from '@theinternetfolks/snowflake'
 
 export const createRoleController: RequestHandler = async (req, res) => {
   try {
@@ -24,7 +23,7 @@ export const createRoleController: RequestHandler = async (req, res) => {
     const date = new Date()
     const role = await db.role.create({
       data: {
-        id: v4(),
+        id: Snowflake.generate(),
         name,
         updated_at: date,
         created_at: date

@@ -2,7 +2,7 @@ import { RequestHandler } from 'express'
 import { NoUserResponse, catchErrorResponse } from '../constants/response'
 import { UserToken } from '../middlewares/authMiddleware'
 import db from '@repo/db/clients'
-import { v4 } from 'uuid'
+import { Snowflake } from '@theinternetfolks/snowflake'
 
 export const createMemberController: RequestHandler = async (req, res) => {
   try {
@@ -108,7 +108,7 @@ export const createMemberController: RequestHandler = async (req, res) => {
     }
     const member = await db.member.create({
       data: {
-        id: v4(),
+        id: Snowflake.generate(),
         roleRef: { connect: { id: role } },
         userRef: { connect: { id: user } },
         communityRef: { connect: { id: community } },
