@@ -77,17 +77,20 @@ export const createMemberController: RequestHandler = async (req, res) => {
         id: role
       }
     })
+    let roleId = ''
     if (!roleExists) {
-      return res.status(400).json({
-        status: false,
-        errors: [
-          {
-            param: 'role',
-            message: 'Role not found.',
-            code: 'RESOURCE_NOT_FOUND'
-          }
-        ]
+      const date = new Date()
+      const role = await db.role.create({
+        data: {
+          id: Snowflake.generate(),
+          name: 'Community Member',
+          updated_at: date,
+          created_at: date
+        }
       })
+      roleId = role.id
+    } else {
+      roleId = role
     }
     const memberExists = await db.member.findFirst({
       where: {
@@ -109,7 +112,7 @@ export const createMemberController: RequestHandler = async (req, res) => {
     const member = await db.member.create({
       data: {
         id: Snowflake.generate(),
-        roleRef: { connect: { id: role } },
+        roleRef: { connect: { id: roleId } },
         userRef: { connect: { id: user } },
         communityRef: { connect: { id: community } },
         created_at: new Date()
