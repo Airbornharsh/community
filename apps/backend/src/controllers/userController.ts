@@ -1,8 +1,10 @@
 import { RequestHandler } from 'express'
-import { userValidation } from '../validator'
+import { signinValidation, userValidation } from '../validator'
 import { v4 } from 'uuid'
 import db from '@repo/db/clients'
 import { encode } from '../utils/token'
+import bcrypt from 'bcrypt'
+import { UserToken } from '../middlewares/authMiddleware'
 
 export const signupController: RequestHandler = async (req, res) => {
   const { name, email, password } = req.body
@@ -37,19 +39,20 @@ export const signupController: RequestHandler = async (req, res) => {
         ]
       })
     }
+    const hashPassword = bcrypt.hashSync(password, 10)
     const user = await db.user.create({
       data: {
         id: v4(),
         name,
         email,
-        password,
+        password: hashPassword,
         created_at: new Date()
       }
     })
     const userData = {
       id: user.id,
       name: user.name,
-      email: user.name,
+      email: user.email,
       created_at: user.created_at
     }
     const token = encode(userData)
@@ -85,4 +88,117 @@ export const signupController: RequestHandler = async (req, res) => {
       ]
     })
   }
+}
+
+export const signinController: RequestHandler = async (req, res) => {
+  const { email, password } = req.body
+  try {
+    var { error } = signinValidation.validate({ email })
+    if (error) {
+      return res.status(400).json({
+        status: false,
+        errors: [
+          {
+            param: 'email',
+            message: 'Please provide a valid email address.',
+            code: 'INVALID_INPUT'
+          }
+        ]
+      })
+    }
+    const user = await db.user.findFirst({
+      where: {
+        email
+      }
+    })
+    if (!user) {
+      return res.status(400).json({
+        status: false,
+        errors: [
+          {
+            param: 'email',
+            message: 'User with this email address does not exist.',
+            code: 'INVALID_CREDENTIALS'
+          }
+        ]
+      })
+    }
+    const samePassword = bcrypt.compareSync(password, user.password)
+    if (!samePassword) {
+      return res.status(400).json({
+        status: false,
+        errors: [
+          {
+            param: 'password',
+            message: 'The credentials you provided are invalid.',
+            code: 'INVALID_CREDENTIALS'
+          }
+        ]
+      })
+    }
+    const userData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      created_at: user.created_at
+    }
+    const token = encode(userData)
+    if (!token) {
+      return res.status(500).json({
+        status: false,
+        errors: [
+          {
+            message: 'Internal server error',
+            code: 'INTERNAL_SERVER_ERROR'
+          }
+        ]
+      })
+    }
+    res.cookie('access_token', token)
+    return res.status(200).json({
+      status: true,
+      content: {
+        data: userData,
+        meta: {
+          access_token: token
+        }
+      }
+    })
+  } catch (e) {
+    return res.status(500).json({
+      status: false,
+      errors: [
+        {
+          message: 'Internal server error',
+          code: 'INTERNAL_SERVER_ERROR'
+        }
+      ]
+    })
+  }
+}
+
+export const getUserData: RequestHandler = async (req, res) => {
+  const user = res.locals.user as UserToken | null
+  if (user === null) {
+    return res.status(401).json({
+      status: false,
+      errors: [
+        {
+          message: 'You need to sign in to proceed.',
+          code: 'NOT_SIGNEDIN'
+        }
+      ]
+    })
+  }
+  return res.status(200).json({
+    status: true,
+    content: {
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        created_at: user.created_at
+      }
+    }
+  })
 }

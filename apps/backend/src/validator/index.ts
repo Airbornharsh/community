@@ -7,3 +7,9 @@ export const userValidation = Joi.object({
     .required(),
   password: Joi.string().min(6).required()
 })
+
+export const signinValidation = Joi.object({
+  email: Joi.string()
+    .regex(/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/)
+    .required()
+})

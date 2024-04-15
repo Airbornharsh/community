@@ -1,5 +1,10 @@
 import { Router } from 'express'
-import { signupController } from '../controllers/userController'
+import {
+  getUserData,
+  signinController,
+  signupController
+} from '../controllers/userController'
+import { verifyToken } from '../middlewares/authMiddleware'
 
 const main = (router: Router) => {
   router.get('/', (req, res) => {
@@ -19,8 +24,8 @@ const user = (router: Router) => {
   router.use('/auth', r)
 
   r.post('/signup', signupController)
-  r.use('/signin', signupController)
-  r.use('/me', signupController)
+  r.post('/signin', signinController)
+  r.get('/me', verifyToken, getUserData)
 }
 
 const role = (router: Router) => {
