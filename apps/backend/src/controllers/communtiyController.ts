@@ -270,6 +270,55 @@ export const getJoinedCommunityController: RequestHandler = async (
     if (user === null) {
       return res.status(401).json(NoUserResponse)
     }
+    const limit = 50
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+    const count = await db.member.count({
+      where: {
+        user: user.id
+      }
+    })
+    const members = await db.member.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      where: {
+        user: user.id
+      },
+      include: {
+        communityRef: {
+          include: {
+            ownerRef: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
+      }
+    })
+    const tempMembers = members.map((member) => {
+      return {
+        id: member.communityRef.id,
+        name: member.communityRef.name,
+        slug: member.communityRef.slug,
+        owner: {
+          id: member.communityRef.ownerRef.id,
+          name: member.communityRef.ownerRef.name
+        },
+        created_at: member.created_at
+      }
+    })
+    return res.status(200).json({
+      status: true,
+      content: {
+        meta: {
+          total: count,
+          pages: Math.ceil(count / limit),
+          page
+        },
+        data: tempMembers
+      }
+    })
   } catch (e) {
     return res.status(500).json(catchErrorResponse)
   }
