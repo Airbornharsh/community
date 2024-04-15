@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET!
-
 export const encode = (data: any) => {
+  const JWT_SECRET = process.env.JWT_SECRET!
   try {
     const token = jwt.sign(data, JWT_SECRET, { expiresIn: '6h' })
     return token
@@ -12,6 +11,7 @@ export const encode = (data: any) => {
 }
 
 export const decode = (token: string) => {
+  const JWT_SECRET = process.env.JWT_SECRET!
   try {
     const data = jwt.verify(token, JWT_SECRET)
     return data
