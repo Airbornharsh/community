@@ -47,8 +47,8 @@ const role = (router: Router) => {
   const r = Router()
   router.use('/role', r)
 
-  r.post('/', verifyToken, createRoleController)
-  r.get('/', verifyToken, getAllRoleController)
+  r.post('/', createRoleController)
+  r.get('/', getAllRoleController)
 }
 
 const community = (router: Router) => {
@@ -56,8 +56,8 @@ const community = (router: Router) => {
   router.use('/community', r)
 
   r.post('/', verifyToken, createCommunityController)
-  r.get('/', verifyToken, getAllCommunityController)
-  r.get('/:id/members', verifyToken, getMembersCommunityController)
+  r.get('/', getAllCommunityController)
+  r.get('/:id/members', getMembersCommunityController)
   r.get('/me/owner', verifyToken, getOwnedCommunityController)
   r.get('/me/member', verifyToken, getJoinedCommunityController)
 }

@@ -7,10 +7,6 @@ import { v4 } from 'uuid'
 
 export const createRoleController: RequestHandler = async (req, res) => {
   try {
-    const user = res.locals.user as UserToken | null
-    if (user === null) {
-      return res.status(401).json(NoUserResponse)
-    }
     const { name } = req.body
     const { error } = roleNameValidation.validate({ name })
     if (error) {
@@ -47,10 +43,6 @@ export const createRoleController: RequestHandler = async (req, res) => {
 
 export const getAllRoleController: RequestHandler = async (req, res) => {
   try {
-    const user = res.locals.user as UserToken | null
-    if (user === null) {
-      return res.status(401).json(NoUserResponse)
-    }
     const limit = 50
     const page = req.query.page ? parseInt(req.query.page as string) : 1
     const count = await db.role.count()

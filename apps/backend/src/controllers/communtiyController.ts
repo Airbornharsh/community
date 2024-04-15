@@ -95,10 +95,45 @@ export const createCommunityController: RequestHandler = async (req, res) => {
 
 export const getAllCommunityController: RequestHandler = async (req, res) => {
   try {
-    const user = res.locals.user as UserToken | null
-    if (user === null) {
-      return res.status(401).json(NoUserResponse)
-    }
+    const limit = 50
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+    const count = await db.community.count()
+    const communities = await db.community.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        created_at: 'desc'
+      },
+      include: {
+        ownerRef: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    })
+    const tempCommunities = communities.map((community) => {
+      return {
+        ...community,
+        owner: {
+          id: community.ownerRef.id,
+          name: community.ownerRef.name
+        },
+        ownerRef: undefined
+      }
+    })
+    return res.status(200).json({
+      status: true,
+      content: {
+        meta: {
+          total: count,
+          pages: Math.ceil(count / limit),
+          page
+        },
+        data: tempCommunities
+      }
+    })
   } catch (e) {
     return res.status(500).json(catchErrorResponse)
   }
@@ -108,10 +143,6 @@ export const getMembersCommunityController: RequestHandler = async (
   req,
   res
 ) => {
-  const user = res.locals.user as UserToken | null
-  if (user === null) {
-    return res.status(401).json(NoUserResponse)
-  }
   try {
   } catch (e) {
     return res.status(500).json(catchErrorResponse)
