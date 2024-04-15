@@ -133,7 +133,65 @@ export const removeMemberController: RequestHandler = async (req, res) => {
     if (user === null) {
       return res.status(401).json(NoUserResponse)
     }
+    const { id } = req.params
+    const member = await db.member.findFirst({
+      where: {
+        id
+      },
+      include: {
+        communityRef: {
+          include: {
+            members: {
+              where: {
+                user: user.id
+              },
+              include: {
+                roleRef: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+    if (!member) {
+      return res.status(400).json({
+        status: false,
+        errors: [
+          {
+            message: 'Member not found.',
+            code: 'RESOURCE_NOT_FOUND'
+          }
+        ]
+      })
+    }
+    if (
+      member?.communityRef.members[0]?.roleRef.name !== 'Community Admin' &&
+      member?.communityRef.members[0]?.roleRef.name !== 'Community Moderator'
+    ) {
+      return res.status(401).json({
+        status: false,
+        errors: [
+          {
+            message: 'You are not authorized to perform this action.',
+            code: 'NOT_ALLOWED_ACCESS'
+          }
+        ]
+      })
+    }
+    await db.member.delete({
+      where: {
+        id
+      }
+    })
+    return res.status(200).json({
+      status: true
+    })
   } catch (error) {
+    console.log(error)
     return res.status(500).json(catchErrorResponse)
   }
 }
