@@ -31,7 +31,7 @@ model Community {
 
 model Role {
   id         String   @id
-  name       String   @unique
+  name       String
   created_at DateTime
   updated_at DateTime
   members    Member[]

@@ -5,6 +5,7 @@ import db from '@repo/db/clients'
 import { encode } from '../utils/token'
 import bcrypt from 'bcrypt'
 import { UserToken } from '../middlewares/authMiddleware'
+import { NoUserResponse, catchErrorResponse } from '../constants/response'
 
 export const signupController: RequestHandler = async (req, res) => {
   const { name, email, password } = req.body
@@ -78,15 +79,7 @@ export const signupController: RequestHandler = async (req, res) => {
       }
     })
   } catch (e) {
-    return res.status(500).json({
-      status: false,
-      errors: [
-        {
-          message: 'Internal server error',
-          code: 'INTERNAL_SERVER_ERROR'
-        }
-      ]
-    })
+    return res.status(500).json(catchErrorResponse)
   }
 }
 
@@ -165,40 +158,28 @@ export const signinController: RequestHandler = async (req, res) => {
       }
     })
   } catch (e) {
-    return res.status(500).json({
-      status: false,
-      errors: [
-        {
-          message: 'Internal server error',
-          code: 'INTERNAL_SERVER_ERROR'
-        }
-      ]
-    })
+    return res.status(500).json(catchErrorResponse)
   }
 }
 
 export const getUserData: RequestHandler = async (req, res) => {
-  const user = res.locals.user as UserToken | null
-  if (user === null) {
-    return res.status(401).json({
-      status: false,
-      errors: [
-        {
-          message: 'You need to sign in to proceed.',
-          code: 'NOT_SIGNEDIN'
-        }
-      ]
-    })
-  }
-  return res.status(200).json({
-    status: true,
-    content: {
-      data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        created_at: user.created_at
-      }
+  try {
+    const user = res.locals.user as UserToken | null
+    if (user === null) {
+      return res.status(401).json(NoUserResponse)
     }
-  })
+    return res.status(200).json({
+      status: true,
+      content: {
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          created_at: user.created_at
+        }
+      }
+    })
+  } catch (e) {
+    return res.status(500).json(catchErrorResponse)
+  }
 }

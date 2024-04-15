@@ -13,3 +13,11 @@ export const signinValidation = Joi.object({
     .regex(/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/)
     .required()
 })
+
+export const roleNameValidation = Joi.object({
+  name: Joi.string().min(2).required()
+})
+
+export const communityNameValidation = Joi.object({
+  name: Joi.string().min(2).required()
+})
