@@ -29,7 +29,6 @@ export const verifyToken: RequestHandler = async (req, res, next) => {
       res.locals.user = user
     }
   } catch (e) {
-    console.log(e)
     res.locals.user = null
   }
   next()
