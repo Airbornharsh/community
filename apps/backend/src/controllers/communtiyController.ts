@@ -228,6 +228,34 @@ export const getOwnedCommunityController: RequestHandler = async (req, res) => {
     if (user === null) {
       return res.status(401).json(NoUserResponse)
     }
+    const limit = 50
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+    const count = await db.community.count({
+      where: {
+        owner: user.id
+      }
+    })
+    const communities = await db.community.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      where: {
+        owner: user.id
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    })
+    return res.status(200).json({
+      status: true,
+      content: {
+        meta: {
+          total: count,
+          pages: Math.ceil(count / limit),
+          page
+        },
+        data: communities
+      }
+    })
   } catch (e) {
     return res.status(500).json(catchErrorResponse)
   }
